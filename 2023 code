@@ -1,217 +1,138 @@
 package frc.robot;
 
+
 // *** Secao de importacao, aqui importamos as bibliotecas necessarias para controlar o robo
 
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
-import edu.wpi.first.wpilibj.motorcontrol.VictorSP;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.Joystick;                           //biblioteca do joystiick
+import edu.wpi.first.wpilibj.XboxController;                     //biblioteca do controle de xbox
+import edu.wpi.first.wpilibj.DigitalInput;                       //biblioteca para entradas digitais do ROBORIO
+import edu.wpi.first.wpilibj.DutyCycleEncoder;                   //biblioteca do encoder
+import edu.wpi.first.wpilibj.Encoder;                            //2ª biblioteca do encoder
+import edu.wpi.first.wpilibj.TimedRobot;                         //biblioteca de timer do autonomo
+import edu.wpi.first.wpilibj.Timer;                              //2ª biblioteca de timer no autonomo
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;            //biblioteca do tankdrive
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;       //biblioteca de controles
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;  //biblioteca para criar grupo de motor
+import edu.wpi.first.wpilibj.motorcontrol.Spark;                 //biblioteca dos motores spark
+import edu.wpi.first.wpilibj.motorcontrol.VictorSP;              //biblioteca dos motores VictorSP
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;          //biblioteca do Shuffleboard
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;     //biblioteca do SmartDashBoard
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;      //biblioteca do SmartDashBoard
+import edu.wpi.first.cameraserver.CameraServer;                  //biblioteca da camera
+import edu.wpi.first.cameraserver.CameraServerShared;            //2ª biblioteca da camera
+import edu.wpi.first.cscore.CameraServerCvJNI;                   //3ª biblioteca da camera
+import edu.wpi.first.cscore.CameraServerJNI;                     //4ª biblioteca da camera
+import edu.wpi.first.cscore.CvSink;                              //biblioteca de leitura da camera
+import edu.wpi.first.cscore.CvSource;                            //2ª biblioteca de leitura da camera
+import edu.wpi.first.cscore.UsbCamera;                           //biblioteca de conexão com a camera
+import edu.wpi.first.cscore.VideoSink;                           //biblioteca para transmissão da camera
+import edu.wpi.first.cscore.VideoSource.ConnectionStrategy;      //biblioteca para leituras da camera
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 
-public class a extends TimedRobot {
+
+
+public class Robot extends TimedRobot {
   // *** declaracao de todos os motores, variaveis e sensores do robo
   private DifferentialDrive m_myRobot;
-  private final VictorSP m_frontleftMotor = new VictorSP(0);
-  private final VictorSP m_backleftMotor = new VictorSP(1);
-  private final VictorSP m_frontrightMotor = new VictorSP(2);
-  private final VictorSP m_backrightMotor = new VictorSP(3);
-  MotorControllerGroup m_left = new MotorControllerGroup(m_frontleftMotor, m_backleftMotor);
-  MotorControllerGroup m_right = new MotorControllerGroup(m_frontrightMotor, m_backrightMotor);
-  private final VictorSP climber = new VictorSP(5);
-  private final VictorSP lancador = new VictorSP(4);
-  private final VictorSP intake = new VictorSP(6);
-  private final XboxController Rogerio = new XboxController(0);
-  private final XboxController Bernardo = new XboxController(1);
-  private final DigitalInput fimdecursoclimber = new DigitalInput(1);
-  private final DigitalInput iniciodecursoclimber = new DigitalInput(4);//servo
-  private final DigitalInput fimdecursoint = new DigitalInput(5);
-  private final DigitalInput iniciodecursoint = new DigitalInput(6);
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
-  private final Encoder encoder = new Encoder(2,3);
-  private final Servo servo = new Servo(7);
-  private double startTimer;
-  @Override
-  public void robotInit() {
-    // *** Secao de configuracao do robo
-    m_right.setInverted(true);// inverte o lado direito do robo
-    m_myRobot = new DifferentialDrive(m_left, m_right);// estabelece o m_myRobot como um diferential drive, ou seja, a potencia dos motores sempre sera igual para os dois
-    CameraServer.startAutomaticCapture();// inicializa a webcam
-    SmartDashboard.putData("Auto choices", m_chooser);// cria a lista de programas do autonomo
-  }
+  private final Spark m_frontleftMotor = new Spark(0);  //define o motor da frente esquerda na porta pmw 0
+  private final Spark m_backleftMotor = new Spark(1);   //define o motor de trás esquerdo na porta pmw 1
+  private final Spark m_frontrightMotor = new Spark(2); //define o motor da frente direita na porta pmw 2
+  private final Spark m_backrightMotor = new Spark(3);  //define o motor de trás direito na porta pmw 3
+  private final Spark braco = new Spark (4);            //define o motor do braço na porta pmw 4
+  private final Spark m_intake = new Spark(5);          //define o motor do intake na porta pmw 5
+  private final Spark cone = new Spark (6);             //define o motor do...
+  private final Spark cubo = new Spark(7);              //define o motor do...
 
-  @Override
-  public void autonomousInit() {
-  }
-  @Override
-  public void autonomousPeriodic(){
-    for(double i = 0; i <= 0.5; i = i + 0.05){
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      m_left.set(-i);
-      m_right.set(-i);
-    }
-    for(double i = 0.5; i >= 0; i = i - 0.05){
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      m_left.set(-i);
-      m_right.set(-i);
-      
-    }
-    
-    m_myRobot.tankDrive(0, 0);
-    lancador.set(-0.7);
-    try {
-      Thread.sleep(1500);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    lancador.set(0);
-    for(double i = 0; i <= 0.5; i = i + 0.05){
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      m_left.set(-i);
-      m_right.set(-i);
-      
-  }
-  for(double i = 0.5; i >= 0; i = i - 0.05){
-    try {
-      Thread.sleep(100);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    m_left.set(-i);
-    m_right.set(-i);
-    
-  }
-    
-    try {
-      Thread.sleep(1000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    m_myRobot.tankDrive(0, 0);
-    try {
-      Thread.sleep(11500);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-  }
-
-  @Override
-  public void teleopInit(){
-    encoder.reset();
-  }
-  @Override
-  public void teleopPeriodic(){
-    /**
-     * Glossario de variaveis do teleoperado
-     * 
-     * vel_motor controla a velocidade dos motores de locomocao(m_right e m_left)
-     * vel_climber controla a velocidade do climber
-     * RogerioY valor do eixo Y do joystick da esquerda do gamepad 1
-     * RogerioX valor do eixo x do joystick da direita do gamepad 1
-     * BernardoY valor do eixo y do joystick da esquerda do gamepad 2
-     * BernardoX valor do eixo x do joystick da direita do gamepad 2
-     */
-  double vel_motor = -0.7;// limitador da potencia dos motores de locomocao
-  double vel_climber = 0;// limitador e controlador da potencia do climber
-  double RogerioY = (Rogerio.getLeftY()*vel_motor);// valor do joystick da esquerda do gamepad 1 vezes o vel_motor
-  double RogerioX = (Rogerio.getRightX()*-vel_motor);// valor do joystick da direita do gamepad 1 vezes o vel_motor
-  double BernardoY = (Bernardo.getLeftY()*vel_motor);// valor do joystick da esquerda do gamepad 2 vezes o ve_motor
-  double BernardoX = (Bernardo.getRightX()*-vel_motor);// valor do joystick da direita do joystick 2 vezes o vel_motor
-  boolean start = false;
-
-  // *** Controle da velocidade dos motores de locomocao(m_right e m_left)
-  if(Rogerio.getRawButton(6) == true || Bernardo.getRawButton(6) == true){//se o bumper da direita estiver pressionado:...
-     vel_motor = -0.5;//...o vel_motor sera atribuido -0.5 para diminuir a velocidade do robo
-  }else{//se o bumper da direita nao estiver pressionado..
-    vel_motor = -0.7;//...o vel_motor sera atribuido -0.7 para manter a velocidade do robo mais lento
-  }
-
-  if(Rogerio.getRawButton(8) == true){
-    start = !start;
-  }
-
-  // *** Controle da velocidade do climber
-  if(Bernardo.getRawButton(5) == true){// se o bumper da esquerda estiver pressionado...
-    vel_climber = 1;// ... vel_climber sera atribuido 1 para o climber estar na velocidade maxima
-  }else{// se o bumper da esquerda nao estiver pressionado...
-    vel_climber = 0.1;// ... vel_climber sera atribuido 0.5 para diminuir a velocidade
-  }
-
-  // *** Controle do lancador
-  if(Rogerio.getRawButton(1) == true){// se o botao b estiver pressionado...
-    lancador.set(0.70);// ... o lancador sera ativado com -70% de potencia 
-  }
-  if(Rogerio.getRawButton(3) == true){// se o botao x for pressionado...
-    lancador.set(0.85);// ... o lancador sera ativado com uma potencia de -85%
-  }
-  if(Rogerio.getRawButton(4) == true){//se o botao y for pressionado...
-    lancador.set(1); // ... o lancador sera ativado com uma potencia de -100%
-  }
-  if(Rogerio.getRawButton(2) == true){// se o botao b for pressionado...
-    lancador.set(0);// ... o lancador sera desativado
-  }
+  MotorControllerGroup m_left = new MotorControllerGroup(m_frontleftMotor, m_backleftMotor);    //cria o grupo dos motores esquerdos
+  MotorControllerGroup m_right = new MotorControllerGroup(m_frontrightMotor, m_backrightMotor); //cria o grupo dos motores direitos
  
-  // *** Controle do intake
-  if(Rogerio.getPOV() == 0){// se a seta de cima do dpad for pressionada...
-    servo.setAngle(0); // ... o intake voltara para sua posição inicia
-  }
-  if(Rogerio.getPOV() == 90){// se a seta da direita do dpad for pressinada...
-    servo.setAngle(40);// ... o intake ira recolher a bola
-  }
-  if(Rogerio.getPOV() == 270){// se a seta de baixo do dpad for pressionado...
-    startTimer = Timer.getFPGATimestamp(); // um timer ira começar...
-    lancador.set(1);// ... e o lancador sera iniciado
-  }else{
-    if(Timer.getFPGATimestamp() - startTimer < 1.5){// se o tempo atual e o startTImer forem menor que 1.5 segundos...
-      servo.setAngle(80);// ... o servo ira empurrar a bola para lanca-la
-    } 
-  }
-
-  // *** Controle do climber
-  if(Bernardo.getPOV() == 0 && fimdecursoclimber.get() == true){// ... se a seta de cima do dpad for pressionado e o fim de curso nao estiver acionado...
-    climber.set(vel_climber);// ... o climber tera a potencia igual ao vel_climber
-  }else if(Bernardo.getPOV() == 180 && fimdecursoclimber.get()){// se a seta de baixo do dpad for pressionado e o fim de curso nao estiver acionado...
-    climber.set(-vel_climber);// ... o climber tera a potencia igual ao vel_climber
-  }else{// se nenhum dos dpads estiverem ativados...
-    climber.set(0); // ... o climber sera desativado
-  }
-
-  // *** Controle do freio
-  while(Rogerio.getRawAxis(3) == 1){// enquanto o trigger da direita estiver totalmente pressionado...
-    m_myRobot.tankDrive(0, 0);// ...o robo entrara no seu modo de freio
-  }
-
-  // *** Controle dos motores de loconomocao(m_left e m_right)
-  if(start == false){
-    m_myRobot.arcadeDrive(RogerioY,RogerioX);// RogerioY movimenta o robo pra frente e para tras e o RogerioX controla o giro do robo
-  }else{
-  m_myRobot.arcadeDrive(BernardoY, BernardoX);// BernardoY movimenta o robo pra frente e para tras e o BernardoX controla o giro do robo
-  }
+  private final Joystick Joy1 = new Joystick(0);              //define o joystick na porta USB 0
+  private final XboxController Joy2 = new XboxController(1);  //define o controle de Xbox na porta USB 1
+  UsbCamera camera1;                                               //conecta a camera ao USB
+  private final Timer m_timer = new Timer();                       //cria o timer
+  DutyCycleEncoder encoder = new DutyCycleEncoder(0);      //define o encoder na porta...
+  BuiltInAccelerometer accelerometer = new BuiltInAccelerometer();
   
-  // *** Area de debugging, leitura de sensores e variaveis
-  SmartDashboard.putNumber("Rogerio vira", RogerioX);// informa o valor do joystickX
-  SmartDashboard.putNumber("Rogerio vai pra frente", RogerioY);// informa o valor do joystickY
-  SmartDashboard.putNumber("Bernardo vira", BernardoX);
-  SmartDashboard.putNumber("Bernardo vai pra frente", BernardoY);
-  SmartDashboard.putBoolean("Modo turbo", Bernardo.getRawButton(6) || Rogerio.getRawButton(6));
-}
-}
+  @Override
+  public void robotInit() {                                         //roda o programa quando o robô é iniciado
+    // *** Secao de configuracao do robo
+    m_right.setInverted(true);                           //inverte o motor direito
+    m_myRobot = new DifferentialDrive(m_left, m_right);              // estabelece o m_myRobot como um diferential drive, ou seja, a potencia dos motores sempre sera igual para os dois
+    SmartDashboard.putNumber("encoder", encoder.getDistance()); //mostra as graus do encoder no SmartDashBoard
+  }
+  @Override
+  public void autonomousInit(){ //roda a programação quando é iniciado o modo autonomo
+    m_timer.reset();            //reinicia o timer
+    m_timer.start();            //inicia o timer
+  }
+  @Override
+  public void autonomousPeriodic(){ //roda a programação durante o mono autonomo
+  if(m_timer.get()<.5){             //se o tempo for menor que 500 milisegundos
+  m_myRobot.tankDrive(-.5, -.5);}   //o robô vai para trás
+  }
+  @Override
+  public void teleopInit(){ //roda a programação quando é iniciado o modo teleoperado
+    encoder.reset();        //reinicia o ângulo do encoder
+    m_timer.reset();        //reinicia o timer
+  }    
+  @Override
+  public void teleopPeriodic(){ //roda a programação durante o modo teleoperado
+    //definição do motor 
+    double vel_motor = 0.5; //variavel que define a velocidade dos motores
+    double vel_giro = 0.7;  //variavel que define a velocidade dos motores durante o giro
+    double vel_neo = 0.5;   //variavel que define a velocidade da garra
+    boolean start = false;
+    
+    //joystick
+    
+    double X = (Joy1.getRawAxis(1)*vel_motor); //
+    double Z = (-Joy1.getRawAxis(2)*vel_giro); //
+    double n = (Joy2.getRawAxis(5)*vel_neo);   //
+   
+   
+    if(Joy2.getRawButton(5)){ 
+    start = !start;
+    }else{
+    start = false;}
+
+    //Joy 1
+
+    m_myRobot.arcadeDrive(X, Z);       //
+
+    if(Joy1.getRawButton(1)){  //se o botão 1 for pressionado...
+    m_myRobot.arcadeDrive(X*2, Z*2);  //ativa o turbo
+    
+    //Joy 2
+    
+    if(Joy2.getRawAxis(1)==1){   //se o analogico 1 for igual a 1...
+    braco.set(.5);}             //a guarra sobe
+    
+    else if(Joy2.getRawAxis(1)==-1){  //se o analogico 1 for igual a -1...
+    braco.set(-.5);}                       //o braço desce
+    
+    else if(Joy2.getRawAxis(5)==1){   //se o analogico 5 for igual a 1...
+    m_intake.set(.3);}               //o intake é ativado
+    
+    else if(Joy2.getRawAxis(5)==-1){   //se o analogico 5 for igual a -1...
+    m_intake.set(.3);}                //o intake é ativado para o sentido contrario
+    
+    else if(Joy2.getRawButton(1)==true){  
+    cone.set(.5);}
+    
+    else if(Joy2.getRawButton(3)==true){
+    cone.set(-.5);}
+    
+    else if(Joy2.getRawButton(2)==true){
+    cubo.set(.5);}
+    
+    else if(Joy2.getRawButton(4)==true){
+    cone.set(-.5);}
+    }
+    //if(Joy2.getRawButton(6)){// turbo joystick porta 2
+    //m_myRobot.arcadeDrive(x*2, z*2);}
+  }}
