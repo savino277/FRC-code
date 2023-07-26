@@ -1,0 +1,138 @@
+package frc.robot;
+
+
+// *** Secao de importacao, aqui importamos as bibliotecas necessarias para controlar o robo
+
+
+import edu.wpi.first.wpilibj.Joystick;                           //biblioteca do joystiick
+import edu.wpi.first.wpilibj.XboxController;                     //biblioteca do controle de xbox
+import edu.wpi.first.wpilibj.DigitalInput;                       //biblioteca para entradas digitais do ROBORIO
+import edu.wpi.first.wpilibj.DutyCycleEncoder;                   //biblioteca do encoder
+import edu.wpi.first.wpilibj.Encoder;                            //2ª biblioteca do encoder
+import edu.wpi.first.wpilibj.TimedRobot;                         //biblioteca de timer do autonomo
+import edu.wpi.first.wpilibj.Timer;                              //2ª biblioteca de timer no autonomo
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;            //biblioteca do tankdrive
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;       //biblioteca de controles
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;  //biblioteca para criar grupo de motor
+import edu.wpi.first.wpilibj.motorcontrol.Spark;                 //biblioteca dos motores spark
+import edu.wpi.first.wpilibj.motorcontrol.VictorSP;              //biblioteca dos motores VictorSP
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;          //biblioteca do Shuffleboard
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;     //biblioteca do SmartDashBoard
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;      //biblioteca do SmartDashBoard
+import edu.wpi.first.cameraserver.CameraServer;                  //biblioteca da camera
+import edu.wpi.first.cameraserver.CameraServerShared;            //2ª biblioteca da camera
+import edu.wpi.first.cscore.CameraServerCvJNI;                   //3ª biblioteca da camera
+import edu.wpi.first.cscore.CameraServerJNI;                     //4ª biblioteca da camera
+import edu.wpi.first.cscore.CvSink;                              //biblioteca de leitura da camera
+import edu.wpi.first.cscore.CvSource;                            //2ª biblioteca de leitura da camera
+import edu.wpi.first.cscore.UsbCamera;                           //biblioteca de conexão com a camera
+import edu.wpi.first.cscore.VideoSink;                           //biblioteca para transmissão da camera
+import edu.wpi.first.cscore.VideoSource.ConnectionStrategy;      //biblioteca para leituras da camera
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj.BuiltInAccelerometer;
+
+
+
+public class Robot extends TimedRobot {
+  // *** declaracao de todos os motores, variaveis e sensores do robo
+  private DifferentialDrive m_myRobot;
+  private final Spark m_frontleftMotor = new Spark(0);  //define o motor da frente esquerda na porta pmw 0
+  private final Spark m_backleftMotor = new Spark(1);   //define o motor de trás esquerdo na porta pmw 1
+  private final Spark m_frontrightMotor = new Spark(2); //define o motor da frente direita na porta pmw 2
+  private final Spark m_backrightMotor = new Spark(3);  //define o motor de trás direito na porta pmw 3
+  private final Spark braco = new Spark (4);            //define o motor do braço na porta pmw 4
+  private final Spark m_intake = new Spark(5);          //define o motor do intake na porta pmw 5
+  private final Spark cone = new Spark (6);             //define o motor do...
+  private final Spark cubo = new Spark(7);              //define o motor do...
+
+  MotorControllerGroup m_left = new MotorControllerGroup(m_frontleftMotor, m_backleftMotor);    //cria o grupo dos motores esquerdos
+  MotorControllerGroup m_right = new MotorControllerGroup(m_frontrightMotor, m_backrightMotor); //cria o grupo dos motores direitos
+ 
+  private final Joystick Joy1 = new Joystick(0);              //define o joystick na porta USB 0
+  private final XboxController Joy2 = new XboxController(1);  //define o controle de Xbox na porta USB 1
+  UsbCamera camera1;                                               //conecta a camera ao USB
+  private final Timer m_timer = new Timer();                       //cria o timer
+  DutyCycleEncoder encoder = new DutyCycleEncoder(0);      //define o encoder na porta...
+  BuiltInAccelerometer accelerometer = new BuiltInAccelerometer();
+  
+  @Override
+  public void robotInit() {                                         //roda o programa quando o robô é iniciado
+    // *** Secao de configuracao do robo
+    m_right.setInverted(true);                           //inverte o motor direito
+    m_myRobot = new DifferentialDrive(m_left, m_right);              // estabelece o m_myRobot como um diferential drive, ou seja, a potencia dos motores sempre sera igual para os dois
+    SmartDashboard.putNumber("encoder", encoder.getDistance()); //mostra as graus do encoder no SmartDashBoard
+  }
+  @Override
+  public void autonomousInit(){ //roda a programação quando é iniciado o modo autonomo
+    m_timer.reset();            //reinicia o timer
+    m_timer.start();            //inicia o timer
+  }
+  @Override
+  public void autonomousPeriodic(){ //roda a programação durante o mono autonomo
+  if(m_timer.get()<.5){             //se o tempo for menor que 500 milisegundos
+  m_myRobot.tankDrive(-.5, -.5);}   //o robô vai para trás
+  }
+  @Override
+  public void teleopInit(){ //roda a programação quando é iniciado o modo teleoperado
+    encoder.reset();        //reinicia o ângulo do encoder
+    m_timer.reset();        //reinicia o timer
+  }    
+  @Override
+  public void teleopPeriodic(){ //roda a programação durante o modo teleoperado
+    //definição do motor 
+    double vel_motor = 0.5; //variavel que define a velocidade dos motores
+    double vel_giro = 0.7;  //variavel que define a velocidade dos motores durante o giro
+    double vel_neo = 0.5;   //variavel que define a velocidade da garra
+    boolean start = false;
+    
+    //joystick
+    
+    double X = (Joy1.getRawAxis(1)*vel_motor); //
+    double Z = (-Joy1.getRawAxis(2)*vel_giro); //
+    double n = (Joy2.getRawAxis(5)*vel_neo);   //
+   
+   
+    if(Joy2.getRawButton(5)){ 
+    start = !start;
+    }else{
+    start = false;}
+
+    //Joy 1
+
+    m_myRobot.arcadeDrive(X, Z);       //
+
+    if(Joy1.getRawButton(1)){  //se o botão 1 for pressionado...
+    m_myRobot.arcadeDrive(X*2, Z*2);  //ativa o turbo
+    
+    //Joy 2
+    
+    if(Joy2.getRawAxis(1)==1){   //se o analogico 1 for igual a 1...
+    braco.set(.5);}             //a guarra sobe
+    
+    else if(Joy2.getRawAxis(1)==-1){  //se o analogico 1 for igual a -1...
+    braco.set(-.5);}                       //o braço desce
+    
+    else if(Joy1.getRawAxis(5)==1){   //se o analogico 5 for igual a 1...
+    m_intake.set(.3);}               //o intake é ativado
+    
+    else if(Joy1.getRawAxis(5)==-1){   //se o analogico 5 for igual a -1...
+    m_intake.set(.3);}                //o intake é ativado para o sentido contrario
+    
+    else if(Joy2.getRawButton(1)==true){  
+    cone.set(.5);}
+    
+    else if(Joy2.getRawButton(3)==true){
+    cone.set(-.5);}
+    
+    else if(Joy2.getRawButton(2)==true){
+    cubo.set(.5);}
+    
+    else if(Joy2.getRawButton(4)==true){
+    cone.set(-.5);}
+    }
+    //if(Joy2.getRawButton(6)){// turbo joystick porta 2
+    //m_myRobot.arcadeDrive(x*2, z*2);}
+  }}
